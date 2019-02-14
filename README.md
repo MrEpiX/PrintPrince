@@ -1,19 +1,19 @@
 # **Print Prince**
-Print Prince aims to centralize administration of printers in environments using both [Cirrato One](https://www.lrsoutputmanagement.com/products/cirrato) and the tool [SysMan (in Swedish)](https://www.inera.se/tjanster/eklient/eklient/), part of the swedish [eKlient coordinated by Inera (in Swedish)](https://www.inera.se/tjanster/eklient/eklient/), as their printer management.
+Print Prince aims to centralize administration of printers in environments using both [Cirrato One](https://www.lrsoutputmanagement.com/products/cirrato) and the tool [SysMan (in Swedish)](https://www.inera.se/tjanster/eklient/eklient/) as their printer management.
 
 By using the APIs of Cirrato and SysMan, creation of new printers in each system can be done from a single tool. Print Prince optimizes printer management workflow with a GUI simple and quick enough for even the first line support to use.
 
-* **Flexible** - Using Print Prince enables solutions such as login scripts to install printers through the Cirrato Client's API instead.
+* **Flexible** - Using Print Prince enables solutions such as login scripts to install printers through the Cirrato Client's API while still having the benefits of installing printers through SysMan.
 * **Modern** - Print Prince replaces the dated Microsoft Management Console, implementing Material Design with a modern look and responsive design focused on user experience.
-* **Minimize Mistakes** - When working with two systems and needing to create printers in both of them it's easy to forget one, Print Prince prevents that by creating the printer in both by default.
-* **Maximize Value** - No more double licenses for the same printer. Print Prince validates creation of printers against both name and IP address to make sure you don't pay double for what you have.
-* **Lightweight** - Because Print Prince stores no data on its own, Print Prince is quick. All communication is in real-time with Cirrato and SysMan in your own environment asynchronously to keep the UI responsive.
-* **User Authentication** - User rights are assigned in each system as always, Print Prince simply authenticates the user through the APIs to make sure no one unauthorized get into your systems.
+* **Minimize Mistakes** - When working with two systems and needing to create printers in both it's easy to forget one, Print Prince prevents mistakes by creating the printer in both by default.
+* **Maximize Value** - No more of several licenses for the same printer, Print Prince validates creation of printers against both name and IP address in Cirrato to make sure you don't pay double for what you have.
+* **Lightweight** - Because Print Prince stores no data on its own, it's quick. All communication happens in the background in real-time with Cirrato and SysMan in your own environment to keep Print Prince responsive.
+* **User Authentication** - User rights are assigned in each system, Print Prince then authenticates the user through the APIs to make sure no one unauthorized gets into your systems.
 
 # Requirements
 The machine running Print Prince requires at least .NET Framework 4.6.1 and the Cirrato Print Management Client (PMC) installed, configured to the Cirrato system in your environment.
 
-If Print Prince is used from a remote server, ability to communicate with Cirrato and SysMan servers needs to be assured according to configuration. The default ports are TCP 80 and 443 for HTTP/HTTPS.
+If Print Prince is used from a remote server, ability to communicate with Cirrato and SysMan servers needs to be assured according to port configuration in each system. The default ports of both APIs are TCP 80 and 443 (HTTP/HTTPS).
 
 ## **Setup**
 Install Print Prince through the setup file among the releases, download the zipped tool for a portable version or build the project on your own.
@@ -22,24 +22,24 @@ Install Print Prince through the setup file among the releases, download the zip
 Print Prince comes with a .config file where the Cirrato Print PMC installation path and SysMan URL need to be set.
 
 ### **Rights**
-* Cirrato API rights are assigned through a separate AD group for the API set in the Cirrato Configuration Manager where direct membership of the user is required (no nested groups because of how Cirrato works). When using Print Prince the user needs to log into the Cirrato PMC.
-* SysMan API rights are shared with the normal rights assignment in the SysMan settings, Print Prince uses the credentials of the currently logged in user.
+* Cirrato API rights are assigned through a separate AD group for the API, set in the Cirrato Configuration Manager where direct membership of the user is required (no nested groups because of how Cirrato works).
+* SysMan API rights are shared with the normal rights assignment in the SysMan settings, Print Prince uses the credentials of the user running the application for SysMan communication.
 
 ## **Using Print Prince**
 
 ### **Logging into Print Prince**
-If the user is not already logged into the PMC from a separate source such as the CMD, Print Prince will handle the login by prompting the user when started.
+When using Print Prince the user needs to log into the Cirrato PMC. If the user is not already logged into the PMC from a separate source, Print Prince will handle the login by prompting the user when started.
 
 <img src="Login.gif">
 
 ### **Creating a Printer**
-When creating a printer, Print Prince checks for printers in Cirrato containing three underscores, matching the naming convention SITE_BUILDING_FLOOR_xx where xx is a series of numbers starting at 01. If this naming convention is followed, Print Prince suggests the first available number in the series, but the name can be changed freely afterwards if desired.
+When creating a printer, Print Prince checks in Cirrato for printers that contain three underscores, matching the naming convention SITE_BUILDING_FLOOR_xx where xx is a series of numbers starting at 01. Print Prince suggests the first available number in the series, but the name can be changed freely afterwards if desired.
 Print Prince requires each field to be filled, and verifies that the name and IP address is not already used by a printer in Cirrato.
 
 <img src="Create.gif">
 
 ### **Listing Printers**
-Print Prince lets you easily list all printers in Cirrato with their associated information. If they don't exist with the same name in SysMan they are marked red to make troubleshooting easier. The list implements quick and responsive filtering by name and sorting on each column, and clicking a printer will show what computers or users have the printer installed in SysMan to centralize printer information gathering.
+Print Prince lets you easily list all printers in Cirrato with their associated information. If they don't exist with the same name in SysMan they are marked red to make troubleshooting easier. The list implements filtering by name, sorting on each column and clicking a printer will show what computers or users have the printer installed in SysMan to centralize printer information gathering.
 
 <img src="List.gif">
 
@@ -49,7 +49,7 @@ The full solution includes two extra projects for documentation and installation
 This enables creation of automatic documentation based on the XML comments in the code, and building installation files such as .msi.
 
 # Credit
-Print Prince implements and uses the following libraries and frameworks:
+Print Prince implements and uses the following libraries, frameworks or solutions:
 * [Material Design In XAML Toolkit](https://github.com/MaterialDesignInXAML/MaterialDesignInXamlToolkit)
 * [MVVM Light](http://www.mvvmlight.net/)
 * [MVVM Dialogs](https://github.com/FantasticFiasco/mvvm-dialogs)
@@ -76,4 +76,4 @@ Print Prince implements and uses the following libraries and frameworks:
 **[DomainManager](https://stackoverflow.com/a/23390899)** is written by StackOverflow user Nate B.
 
 # Disclaimers
-While Print Prince is used to assist with printer management in environments using commercial systems, neither Print Prince nor the developer has any affiliation with the owners of these systems, Print Prince simply uses the APIs as they looked during the development of Print Prince.
+While Print Prince is used to assist with printer management in environments using commercial systems, neither Print Prince nor the developer has any affiliation with the owners or developers of these systems, Print Prince simply uses the APIs with the functionality they had during the development of Print Prince.
