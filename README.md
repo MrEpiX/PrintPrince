@@ -30,18 +30,18 @@ Print Prince comes with a .config file where the Cirrato Print PMC installation 
 ### **Logging into Print Prince**
 If the user is not already logged into the PMC from a separate source such as the CMD, Print Prince will handle the login by prompting the user when started.
 
-![](login.gif)
+<img src="Login.gif">
 
 ### **Creating a Printer**
 When creating a printer, Print Prince checks for printers in Cirrato containing three underscores, matching the naming convention SITE_BUILDING_FLOOR_xx where xx is a series of numbers starting at 01. If this naming convention is followed, Print Prince suggests the first available number in the series, but the name can be changed freely afterwards if desired.
 Print Prince requires each field to be filled, and verifies that the name and IP address is not already used by a printer in Cirrato.
 
-![](create.gif)
+<img src="Create.gif">
 
 ### **Listing Printers**
 Print Prince lets you easily list all printers in Cirrato with their associated information. If they don't exist with the same name in SysMan they are marked red to make troubleshooting easier. The list implements quick and responsive filtering by name and sorting on each column, and clicking a printer will show what computers or users have the printer installed in SysMan to centralize printer information gathering.
 
-![](list.gif)
+<img src="List.gif">
 
 ## Building Print Prince
 The full solution includes two extra projects for documentation and installation files. To build the full project, the [SHFB](http://ewsoftware.github.io/SHFB) and Visual Studio extension [Microsoft Visual Studio Installer Projects](https://marketplace.visualstudio.com/items?itemName=VisualStudioClient.MicrosoftVisualStudio2017InstallerProjects) are required on the machine.
