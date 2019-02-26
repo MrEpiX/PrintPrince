@@ -13,7 +13,7 @@ By using the APIs of Cirrato and SysMan, printer management can be done from a s
 # Requirements
 The machine running Print Prince requires at least .NET Framework 4.6.1 and the Cirrato Print Management Client (PMC) installed, configured to the Cirrato system in your environment.
 
-If Print Prince is used from a remote server, teh communication with Cirrato and SysMan servers needs to be assured according to port configuration in each system. The default ports of both APIs are TCP 80 or 443 (HTTP/HTTPS).
+If Print Prince is used from a remote server, the communication with Cirrato and SysMan servers needs to be assured according to port configuration in each system. The default ports of both APIs are TCP 80 or 443 (HTTP/HTTPS).
 
 ## **Setup**
 Install Print Prince through the setup file among the releases, download the zipped tool for a portable version or build the project on your own.

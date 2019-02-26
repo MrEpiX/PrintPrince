@@ -1,0 +1,79 @@
+﻿<Window x:Class="PrintPrince.Views.ConfirmationBox"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:md="https://github.com/fantasticfiasco/mvvm-dialogs"
+        md:DialogServiceViews.IsRegistered="True"
+        mc:Ignorable="d"
+        
+        Title="Confirm"
+        
+        TextElement.Foreground="{DynamicResource MaterialDesignBody}"
+        TextElement.FontWeight="Medium"
+        TextElement.FontSize="14"
+        FontFamily="pack://application:,,,/MaterialDesignThemes.Wpf;component/Resources/Roboto/#Roboto"
+        
+        ResizeMode="NoResize"
+        WindowStyle="None"
+        SizeToContent="WidthAndHeight"
+        AllowsTransparency="True"
+        Background="Transparent"
+        WindowStartupLocation="CenterOwner"
+        
+        DataContext="{Binding Source={StaticResource Locator}, Path=ConfirmationBox}"
+        >
+
+    <Window.InputBindings>
+        <KeyBinding Command="{Binding YesCommand}" Key="Return"/>
+        <KeyBinding Command="{Binding NoCommand}" Key="Esc"/>
+        <KeyBinding Command="{Binding CopyCommand}" Modifiers="Ctrl" Key="C"/>
+    </Window.InputBindings>
+    
+    <Border Margin="10">
+        <Border.Effect>
+            <DropShadowEffect Color="Black" Direction="270" BlurRadius="10" ShadowDepth="3" />
+        </Border.Effect>
+        <Grid HorizontalAlignment="Center" VerticalAlignment="Center" Width="Auto" Height="Auto" Background="{DynamicResource MaterialDesignCardBackground}">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="1"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="1"/>
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="1"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="1"/>
+            </Grid.RowDefinitions>
+            <DockPanel Grid.ColumnSpan="2" Grid.Column="1" Grid.Row="1" >
+                <Grid Name="titleBar"
+                           DockPanel.Dock="Top"
+                           Height="32"
+                           Background="{StaticResource TitleColorBrush}">
+                    <TextBlock Margin="8" VerticalAlignment="Center" Text="Confirm" Foreground="White" />
+                </Grid>
+            </DockPanel>
+            <Rectangle Name="left" Fill="Black" Grid.Row="0" Grid.Column="0" Grid.RowSpan="6" />
+            <Rectangle Name="top" Fill="Black" Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="4" />
+            <Rectangle Name="right" Fill="Black" Grid.Row="0" Grid.Column="3" Grid.RowSpan="6" />
+            <Rectangle Name="bottom" Fill="Black" Grid.Row="5" Grid.Column="0" Grid.ColumnSpan="4" />
+
+            <StackPanel Orientation="Vertical" Grid.Row="3" Grid.Column="2" Margin="8">
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="4">
+                    <TextBlock Text="{Binding HeaderText}" FontSize="16"/>
+                </StackPanel>
+                <StackPanel Orientation="Horizontal" Margin="4,0,0,0">
+                    <TextBlock Text="{Binding BodyText}" Foreground="Khaki"/>
+                </StackPanel>
+            </StackPanel>
+            <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Orientation="Horizontal" Grid.Column="2" Grid.Row="4" Margin="2" >
+                <Button Margin="4" Width="60" Name="OkButton" Content="Yes" Command="{Binding YesCommand}"/>
+                <Button Margin="4" Width="60" Name="CancelButton" Content="No" Command="{Binding NoCommand}" />
+            </StackPanel>
+        </Grid>
+    </Border>
+</Window>

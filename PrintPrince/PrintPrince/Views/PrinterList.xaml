@@ -1,0 +1,96 @@
+﻿<UserControl x:Class="PrintPrince.Views.PrinterList"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:util="clr-namespace:PrintPrince.Services"
+             xmlns:md="https://github.com/fantasticfiasco/mvvm-dialogs"
+             md:DialogServiceViews.IsRegistered="True"
+             mc:Ignorable="d"
+                          
+             DataContext="{Binding Source={StaticResource Locator}, Path=PrinterList}"
+             >
+
+    <UserControl.Resources>
+        <Color x:Key="ErrorColor">#7F0000</Color>
+        <SolidColorBrush x:Key="ErrorColorBrush" Color="{StaticResource ErrorColor}"/>
+        <Color x:Key="ErrorHoverColor">#B71C1C</Color>
+        <SolidColorBrush x:Key="ErrorHoverColorBrush" Color="{StaticResource ErrorHoverColor}"/>
+        <Color x:Key="ErrorSelectColor">#F05545</Color>
+        <SolidColorBrush x:Key="ErrorSelectColorBrush" Color="{StaticResource ErrorSelectColor}"/>
+    </UserControl.Resources>
+
+    <Grid Background="{DynamicResource MaterialDesignCardBackground}">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+        <StackPanel Grid.Row="0" Grid.Column="0" Orientation="Horizontal">
+            <Button Style="{StaticResource MaterialDesignFlatButton}" Command="{Binding MenuCommand}"
+                    HorizontalAlignment="Left" VerticalAlignment="Top" Height="30" Margin="0,10,0,0" ToolTip="Return to Menu">
+                <materialDesign:PackIcon Kind="ArrowLeft" />
+            </Button>
+        </StackPanel>
+        <StackPanel Margin="50,0,0,14" Orientation="Horizontal">
+            <ComboBox Margin="0,12,0,0" Width="160" ItemsSource="{Binding PropertyList}" SelectedItem="{Binding SelectedFilterProperty}" SelectedIndex="0" VerticalAlignment="Top"/>
+            <TextBox Grid.Row="0" Text="{Binding Filter, UpdateSourceTrigger=PropertyChanged}" materialDesign:HintAssist.Hint="Filter Printers..."
+                     HorizontalContentAlignment="Center" VerticalContentAlignment="Center" VerticalAlignment="Top" HorizontalAlignment="Left" Width="260"
+                     Margin="4,15,0,0"/>
+        </StackPanel>
+        <Button Width="120" Content="Properties" Margin="10" HorizontalAlignment="Right" Command="{Binding ShowDetailsCommand}" />
+
+        <ListView Grid.Row="1" ItemsSource="{Binding FilteredPrinters, UpdateSourceTrigger=PropertyChanged}"
+                  Margin="4,0,4,4" VerticalAlignment="Top" SelectionMode="Single" Height="460"
+                  util:GridViewSort.AutoSort="True" util:GridViewSort.ShowSortGlyph="False" SelectedIndex="{Binding ListIndex, UpdateSourceTrigger=PropertyChanged}" >
+            <ListView.ItemContainerStyle>
+                <Style TargetType="ListViewItem" BasedOn="{StaticResource MaterialDesignGridViewItem}">
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding ExistsInSysMan}" Value="false">
+                            <Setter Property="Background" Value="{StaticResource ErrorColorBrush}"/>
+                            <Setter Property="ToolTip" Value="Printer does not exist in SysMan!"/>
+                        </DataTrigger>
+                        <MultiDataTrigger>
+                            <MultiDataTrigger.Conditions>
+                                <Condition Binding="{Binding ExistsInSysMan}" Value="false"/>
+                                <Condition Binding="{Binding RelativeSource={RelativeSource Self}, Path=IsKeyboardFocusWithin}" Value="true"/>
+                            </MultiDataTrigger.Conditions>
+                            <Setter Property="BorderBrush" Value="{StaticResource MaterialDesignTextBoxBorder}"/>
+                            <Setter Property="ToolTip" Value="Printer does not exist in SysMan!"/>
+                        </MultiDataTrigger>
+                        <MultiDataTrigger>
+                            <MultiDataTrigger.Conditions>
+                                <Condition Binding="{Binding ExistsInSysMan}" Value="false"/>
+                                <Condition Binding="{Binding RelativeSource={RelativeSource Self}, Path=IsSelected}" Value="true"/>
+                            </MultiDataTrigger.Conditions>
+                            <Setter Property="Background" Value="{StaticResource ErrorSelectColorBrush}"/>
+                            <Setter Property="ToolTip" Value="Printer does not exist in SysMan!"/>
+                        </MultiDataTrigger>
+                        <MultiDataTrigger>
+                            <MultiDataTrigger.Conditions>
+                                <Condition Binding="{Binding ExistsInSysMan}" Value="false"/>
+                                <Condition Binding="{Binding RelativeSource={RelativeSource Self}, Path=IsMouseOver}" Value="true"/>
+                            </MultiDataTrigger.Conditions>
+                            <Setter Property="Background" Value="{StaticResource ErrorHoverColorBrush}"/>
+                            <Setter Property="ToolTip" Value="Printer does not exist in SysMan!"/>
+                        </MultiDataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </ListView.ItemContainerStyle>
+            <ListView.View>
+                <GridView>
+                    <GridViewColumn Width="Auto" Header="Name" DisplayMemberBinding="{Binding Name}" util:GridViewSort.PropertyName="Name"/>
+                    <GridViewColumn Width="Auto" Header="IP" DisplayMemberBinding="{Binding IP}" util:GridViewSort.PropertyName="IP"/>
+                    <GridViewColumn Width="220" Header="Driver" DisplayMemberBinding="{Binding Driver.Name}" util:GridViewSort.PropertyName="Driver.Name"/>
+                    <GridViewColumn Width="120" Header="Location" DisplayMemberBinding="{Binding Location}" util:GridViewSort.PropertyName="Location"/>
+                    <GridViewColumn Width="200" Header="Description" DisplayMemberBinding="{Binding Description}" util:GridViewSort.PropertyName="Description"/>
+                    <GridViewColumn Width="Auto" Header="Region" DisplayMemberBinding="{Binding Region.Name}" util:GridViewSort.PropertyName="Region.Name"/>
+                    <GridViewColumn Width="Auto" Header="Exists in SysMan" DisplayMemberBinding="{Binding ExistsInSysMan}" util:GridViewSort.PropertyName="ExistsInSysMan"/>
+                </GridView>
+            </ListView.View>
+        </ListView>
+    </Grid>
+</UserControl>

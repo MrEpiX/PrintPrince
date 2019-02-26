@@ -1,0 +1,31 @@
+<Application
+    x:Class="PrintPrince.App"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="clr-namespace:PrintPrince"
+    StartupUri="Views/ApplicationWindow.xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    d1p1:Ignorable="d"
+    xmlns:d1p1="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:vm="clr-namespace:PrintPrince.ViewModels">
+
+    <Application.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/MaterialDesignTheme.Dark.xaml" />
+                <ResourceDictionary Source="pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/MaterialDesignTheme.Defaults.xaml" />
+                <ResourceDictionary Source="pack://application:,,,/MaterialDesignColors;component/Themes/Recommended/Primary/MaterialDesignColor.Amber.xaml" />
+                <ResourceDictionary Source="pack://application:,,,/MaterialDesignColors;component/Themes/Recommended/Accent/MaterialDesignColor.Red.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+
+            <Color x:Key="TitleColor">#212121</Color>
+            <SolidColorBrush x:Key="TitleColorBrush" Color="{StaticResource TitleColor}"/>
+            <Color x:Key="HoverColor">#303030</Color>
+            <SolidColorBrush x:Key="HoverColorBrush" Color="{StaticResource HoverColor}"/>
+
+            <vm:ViewModelLocator x:Key="Locator" d:IsDataSource="True" />
+            <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
+        </ResourceDictionary>
+    </Application.Resources>
+    
+</Application>
