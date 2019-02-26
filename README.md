@@ -13,33 +13,33 @@ By using the APIs of Cirrato and SysMan, printer management can be done from a s
 # Requirements
 The machine running Print Prince requires at least .NET Framework 4.6.1 and the Cirrato Print Management Client (PMC) installed, configured to the Cirrato system in your environment.
 
-If Print Prince is used from a remote server, ability to communicate with Cirrato and SysMan servers needs to be assured according to port configuration in each system. The default ports of both APIs are TCP 80 or 443 (HTTP/HTTPS).
+If Print Prince is used from a remote server, teh communication with Cirrato and SysMan servers needs to be assured according to port configuration in each system. The default ports of both APIs are TCP 80 or 443 (HTTP/HTTPS).
 
 ## **Setup**
 Install Print Prince through the setup file among the releases, download the zipped tool for a portable version or build the project on your own.
 
 ### **Configuration**
-Print Prince comes with a .config file where the Cirrato Print PMC installation path and SysMan URL need to be set.
+Print Prince comes with a .config file where the Cirrato Print PMC installation path and SysMan URL need to be set. There is also an option to specify the distinguished name of an AD group to make the default behavior of the tool read-only and require membership in the group to create, update or delete printers. This setting supports nested group membership.
 
 ### **Rights**
 * Cirrato API rights are assigned through a separate AD group for the API, set in the Cirrato Configuration Manager where direct membership of the user is required (no nested groups because of how Cirrato works).
 * SysMan API rights are shared with the normal rights assignment in the SysMan settings, Print Prince uses the credentials of the user running the application for SysMan communication.
-* Print Prince has an option in the configuration file where the distinguished name of an AD group can be specified to make the default behavior of the tool read-only, and require membership in the AD group to be able to create, update info or delete printers. This AD group supports nested group membership.
+* Print Prince checks the membership of the user running the application if an AD group is specified in the .config file to enable read-only mode by default.
 
 ## **Using Print Prince**
 
 ### **Logging into Print Prince**
-When using Print Prince the user needs to log into the Cirrato PMC. If the user is not already logged into the PMC from a separate source, Print Prince will handle the login by prompting the user when started. No data is stored in Print Prince, the credentials are only user to access Cirrato's API.
+When using Print Prince the user needs to log into the Cirrato PMC. If the user is not already logged into the PMC, Print Prince will handle the login by prompting the user when started. No data is stored in Print Prince, the credentials are only requested if needed and only used to access Cirrato's API.
 
 <img src="Login.gif">
 
 ### **Creating a Printer**
-When creating a printer, Print Prince checks in Cirrato for printers that contain three underscores, matching the naming convention SITE_BUILDING_FLOOR_xx where xx is a series of numbers starting at 01. Print Prince suggests the first available number in the series, but the name can be changed freely afterwards if desired. If this is not a naming convention that you use, feel free to fork Print Prince and remove the naming suggestion parts. Print Prince requires each field to be filled, and verifies that the name and IP address is not already used by a printer in Cirrato.
+When creating a printer, Print Prince suggests a naming convention by finding printers in Cirrato that contain three underscores, matching SITE_BUILDING_FLOOR_xx where xx is a series of numbers starting at 01. Print Prince suggests the first available number in the series, but the name can be changed freely afterwards if desired. If this is not a naming convention that you use, feel free to fork Print Prince and remove the naming suggestion parts. Print Prince requires each field to be filled, and verifies that the name and IP address is not already used by a printer in Cirrato.
 
 <img src="Create.gif">
 
 ### **Listing Printers**
-Print Prince lets you easily list all printers in Cirrato with their associated information. If they don't exist with the same name in SysMan they are marked red to make troubleshooting easier. The list implements filtering, sorting and the ability to open the properties of a printer to update information, to create it in SysMan or to delete it in both systems. If the printer exists in SysMan, the view also lets you see which computers or users have the printer installed.
+Print Prince lets you easily list all printers in Cirrato with their associated information. If they don't exist with the same name in SysMan they are marked red to make troubleshooting easier. The list implements filtering, sorting and the ability to open the properties of a printer to update information, to create it in SysMan or to delete it in both systems. If the printer exists in SysMan, Print Prince also lets you see which computers or users have the printer installed.
 
 <img src="List.gif">
 
