@@ -561,8 +561,8 @@ namespace PrintPrince.Services
                         line = line.Substring(0, line.Length - 2);
 
                         currentPrinter.Description = line;
-                    } // save ID of driver
-                    else if (line.Contains("modelId"))
+                    } // save ID of driver from property printerModel (modelId is another property that does not represent the right driver)
+                    else if (line.Contains("printerModel"))
                     {
                         line = line.Substring(line.IndexOf(':') + 3);
                         line = line.Substring(0, line.Length - 2);

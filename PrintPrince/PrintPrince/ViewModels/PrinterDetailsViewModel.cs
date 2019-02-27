@@ -597,7 +597,7 @@ namespace PrintPrince.ViewModels
 
                             // Modify queue with same name too
                             string queueResult = await PrinterRepository.ModifyQueueAsync(printerToChange);
-
+                            
                             if (queueResult.StartsWith("[OK]"))
                             {
                                 Logger.Log($"Updated queue {CurrentCirratoPrinter.Name} with the same information as the printer!", System.Diagnostics.EventLogEntryType.Information);

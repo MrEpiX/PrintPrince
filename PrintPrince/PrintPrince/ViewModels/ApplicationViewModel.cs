@@ -127,7 +127,7 @@ namespace PrintPrince.ViewModels
             }
             catch (Exception ex)
             {
-                Logger.Log("Error connecting to SysMan URL! Error message:\n{ex.GetFullMessage()}", System.Diagnostics.EventLogEntryType.Error);
+                Logger.Log($"Error connecting to SysMan URL! Error message:\n{ex.GetFullMessage()}", System.Diagnostics.EventLogEntryType.Error);
                 MessageBox.Show($"Error connecting to SysMan URL! Error message:\n{ex.GetFullMessage()}", "SysMan Connection Error", MessageBoxButton.OK, MessageBoxImage.Error);
                 Application.Current.MainWindow.Close();
                 return;
