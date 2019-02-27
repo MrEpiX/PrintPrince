@@ -81,9 +81,13 @@ namespace PrintPrince.Services
         {
             try
             {
+                // This order needs to be followed since the methods populate lists between each other
                 await GetCirratoDriversAsync();
+                await GetCirratoConfigurationsAsync();
+                await GetCirratoDeploymentsAsync();
                 await GetCirratoRegionsAsync();
                 await GetCirratoPrintersAsync();
+                await GetCirratoQueuesAsync();
             }
             catch
             {
@@ -282,7 +286,7 @@ namespace PrintPrince.Services
         /// Gets all regions from Cirrato asynchronously and saves each <see cref="Region"/> to <see cref="RegionList"/>.
         /// </summary>
         /// <remarks>
-        /// Starts pmc.exe with the argument "region list -p / --verbose", filters the output and saves the printers to a list.
+        /// Starts pmc.exe with the argument "region list -p / --verbose", filters the output and saves the regions to a list.
         /// Encodes the PMC output with OEM Code Page 850 (Multilingual Latin 1) to enable Swedish letters.
         /// </remarks>
         private static async Task GetCirratoRegionsAsync()
@@ -382,7 +386,7 @@ namespace PrintPrince.Services
 
                         // Example of current string: 1
                         currentRegion.CirratoID = int.Parse(line);
-                    } // if all info about the current driver has been presented, reset current driver object
+                    } // if all info about the current driver has been presented, reset current region object
                     else if (line == "},")
                     {
                         RegionList.Add(currentRegion);
@@ -393,6 +397,431 @@ namespace PrintPrince.Services
 
                 // the last '}' in the output does not have a comma behind it, so we need to add the last region after the loop
                 RegionList.Add(currentRegion);
+            });
+        }
+
+        /// <summary>
+        /// Gets all queues from Cirrato asynchronously and binds configuration ID to the <see cref="Printer"/> of the queue in <see cref="PrinterList"/>.
+        /// </summary>
+        /// <remarks>
+        /// Starts pmc.exe with the argument "queue list --path * --verbose", filters the output and saves the configurations to a list.
+        /// Encodes the PMC output with OEM Code Page 850 (Multilingual Latin 1) to enable Swedish letters.
+        /// </remarks>
+        private static async Task GetCirratoQueuesAsync()
+        {
+            await Task.Run(() =>
+            {
+                // Example of PMC output
+                /*
+                ]
+                    {
+                        "queueId": "aabbccdd-eeee-ffff-1111-2233445566",
+                        "queueName": "Testprinter01",
+                        "queueModelId": "aabbccdd-eeee-ffff-1111-2233445566",
+                        "queueLocation": "Outside management",
+                        "queueComment": "Printer Example Model 1",
+                        "queueRegion": 7,
+                        "queueType": 1,
+                        "queueStatus": 0,
+                        "queueTTL": 60,
+                        "queueAdminComment": "",
+                        "queueNewStatus": null,
+                        "queueHidden": 0,
+                        "offlineReason": null,
+                        "pagesPerMinuteBWSingle": null,
+                        "pagesPerMinuteColorSingle": null,
+                        "pagesPerMinuteBWDuplex": null,
+                        "pagesPerMinuteColorDuplex": null,
+                        "Configurations": [
+                            {
+                                "Os": "W7",
+                                "Locale": "",
+                                "ConfigurationFileId": "aabbccdd-eeee-ffff-1111-2233445566"
+                            },
+                            {
+                                "Os": "W1064",
+                                "Locale": "",
+                                "ConfigurationFileId": "aabbccdd-eeee-ffff-1111-2233445566"
+                            }
+                        ]
+                    },
+                    {
+                        "queueId": "aabbccdd-eeee-ffff-1111-2233445566",
+                        "queueName": "Testprinter02",
+                        "queueModelId": "aabbccdd-eeee-ffff-1111-2233445566",
+                        "queueLocation": "At the helpdesk",
+                        "queueComment": "Example model 2",
+                        "queueRegion": 7,
+                        "queueType": 1,
+                        "queueStatus": 0,
+                        "queueTTL": 60,
+                        "queueAdminComment": "",
+                        "queueNewStatus": null,
+                        "queueHidden": 0,
+                        "offlineReason": null,
+                        "pagesPerMinuteBWSingle": null,
+                        "pagesPerMinuteColorSingle": null,
+                        "pagesPerMinuteBWDuplex": null,
+                        "pagesPerMinuteColorDuplex": null,
+                        "Configurations": []
+                    }
+                ]
+                 */
+
+                // Start Cirrato PMC process
+                Process cirratoProcess = new Process
+                {
+                    StartInfo = new ProcessStartInfo
+                    {
+                        FileName = CirratoPath,
+                        Arguments = "queue list --path * --verbose",
+                        UseShellExecute = false,
+                        RedirectStandardOutput = true,
+                        CreateNoWindow = true,
+                        StandardOutputEncoding = Encoding.GetEncoding(850)
+                    }
+                };
+                cirratoProcess.Start();
+
+                string queueName = "";
+                string configurationID = "";
+
+                // Save printers to list
+                while (!cirratoProcess.StandardOutput.EndOfStream)
+                {
+                    string line = cirratoProcess.StandardOutput.ReadLine();
+
+                    if (line.StartsWith("[ERROR]"))
+                    {
+                        Logger.Log($"Error loading data from Cirrato. Error message:\n{line}", System.Diagnostics.EventLogEntryType.Error);
+                        MessageBox.Show($"Error loading data from Cirrato. Error message:\n{line}", "Cirrato PMC Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                        Application.Current.MainWindow.Close();
+                        return;
+                    }
+
+                    // remove the whitespace before the string
+                    line = line.Trim();
+
+                    // save name of queue
+                    if (line.Contains("queueName"))
+                    {
+                        // Example of current string: "queueName": "Testprinter02",
+                        line = line.Substring(line.IndexOf(':') + 3);
+
+                        // Example of current string: Testprinter02",
+                        line = line.Substring(0, line.Length - 2);
+
+                        // Example of current string: Testprinter02
+                        queueName = line;
+                    } // save comment/name of config
+                    else if (line.Contains("Configurations"))
+                    {
+                        // inner loop until end of configurations section
+                        while (!line.Contains("]"))
+                        {
+                            // Skip until we find get the ID of the configuration
+                            line = cirratoProcess.StandardOutput.ReadLine();
+                            
+                            if (line.Contains("ConfigurationFileId"))
+                            {
+                                // Example of current string: "ConfigurationFileId": "aabbccdd-eeee-ffff-1111-2233445566"
+                                line = line.Substring(line.IndexOf(':') + 3);
+
+                                // Example of current string: aabbccdd-eeee-ffff-1111-2233445566"
+                                line = line.Substring(0, line.Length - 1);
+
+                                // Example of current string: aabbccdd-eeee-ffff-1111-2233445566
+                                configurationID = line;
+                            }
+                        }
+                    } // if all info about the current driver has been presented, reset current queue
+                    else if (line == "},")
+                    {
+                        // Find printer in list and set the configuration to the name of the configuration in the driver's list of configurations matched by ID
+                        int index = PrinterList.FindIndex(p => p.Name == queueName);
+                        if (!string.IsNullOrWhiteSpace(configurationID))
+                        {
+                            PrinterList[index].Configuration = DriverList.Where(d => d.ConfigurationList.Any(c => c.CirratoID == configurationID)).FirstOrDefault().ConfigurationList.Where(c => c.CirratoID == configurationID).FirstOrDefault().Name;
+                        }
+                        queueName = "";
+                        configurationID = "";
+                    }
+                }
+
+                // the last '}' in the output does not have a comma behind it, so we need to add the last config after the loop
+                int lastIndex = PrinterList.FindIndex(p => p.Name == queueName);
+                if (!string.IsNullOrWhiteSpace(configurationID))
+                {
+                    PrinterList[lastIndex].Configuration = DriverList.Where(d => d.ConfigurationList.Any(c => c.CirratoID == configurationID)).FirstOrDefault().ConfigurationList.Where(c => c.CirratoID == configurationID).FirstOrDefault().Name;
+                }
+            });
+        }
+
+        /// <summary>
+        /// Gets all configurations from Cirrato asynchronously and saves each <see cref="Configuration"/> to the <see cref="Printer"/> in <see cref="PrinterList"/>.
+        /// </summary>
+        /// <remarks>
+        /// Starts pmc.exe with the argument "configuration list --verbose", filters the output and saves the configurations to a list.
+        /// Encodes the PMC output with OEM Code Page 850 (Multilingual Latin 1) to enable Swedish letters.
+        /// </remarks>
+        private static async Task GetCirratoConfigurationsAsync()
+        {
+            await Task.Run(() =>
+            {
+                // Example of PMC output
+                /*
+                [
+                    {
+                        "configfile_id": "aabbccdd-eeee-ffff-1111-2233445566",
+                        "configfile_model": "RICOH PCL6 UniversalDriver V4.18",
+                        "configfile_date": "2019-02-27T12:42:16.953",
+                        "configfile_creator": "username",
+                        "configfile_domain": "domain",
+                        "configfile_arch": 0,
+                        "configfile_majorOs": 10,
+                        "configfile_minorOs": 0,
+                        "configfile_Locale": "",
+                        "configfile_majorversion": 3,
+                        "configfile_minorversion": 0,
+                        "configfile_comment": "Ricoh B/W Config",
+                        "configfile_queueName": "Ricoh Template Printer",
+                        "configfile_queueId": "",
+                        "configfile_driverOS": 0
+                    },
+                    {
+                        "configfile_id": "aabbccdd-eeee-ffff-1111-2233445566",
+                        "configfile_model": "PCL6 Driver for Universal Print",
+                        "configfile_date": "2017-11-20T10:22:24.363",
+                        "configfile_creator": "username",
+                        "configfile_domain": "domain",
+                        "configfile_arch": 0,
+                        "configfile_majorOs": 6,
+                        "configfile_minorOs": 3,
+                        "configfile_Locale": "",
+                        "configfile_majorversion": 1,
+                        "configfile_minorversion": 2,
+                        "configfile_comment": "Ricoh BW Duplex",
+                        "configfile_queueName": "Ricoh Template Printer",
+                        "configfile_queueId": "",
+                        "configfile_driverOS": 0
+                    }
+                ]
+                 */
+
+                // Start Cirrato PMC process
+                Process cirratoProcess = new Process
+                {
+                    StartInfo = new ProcessStartInfo
+                    {
+                        FileName = CirratoPath,
+                        Arguments = "configuration list --verbose",
+                        UseShellExecute = false,
+                        RedirectStandardOutput = true,
+                        CreateNoWindow = true,
+                        StandardOutputEncoding = Encoding.GetEncoding(850)
+                    }
+                };
+                cirratoProcess.Start();
+
+                Models.Configuration currentConfig = new Models.Configuration();
+
+                // Save printers to list
+                while (!cirratoProcess.StandardOutput.EndOfStream)
+                {
+                    string line = cirratoProcess.StandardOutput.ReadLine();
+
+                    if (line.StartsWith("[ERROR]"))
+                    {
+                        Logger.Log($"Error loading data from Cirrato. Error message:\n{line}", System.Diagnostics.EventLogEntryType.Error);
+                        MessageBox.Show($"Error loading data from Cirrato. Error message:\n{line}", "Cirrato PMC Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                        Application.Current.MainWindow.Close();
+                        return;
+                    }
+
+                    // remove the whitespace before the string
+                    line = line.Trim();
+
+                    // save comment/name of config
+                    if (line.Contains("configfile_comment"))
+                    {
+                        // Example of current string: "configfile_comment": "Ricoh BW Duplex",
+                        line = line.Substring(line.IndexOf(':') + 3);
+
+                        // Example of current string: Ricoh BW Duplex",
+                        line = line.Substring(0, line.Length - 2);
+
+                        // Example of current string: Ricoh BW Duplex
+                        currentConfig.Name = line;
+                    } // save ID of config
+                    else if (line.Contains("configfile_id"))
+                    {
+                        // Example of current string: "configfile_id": "aabbccdd-eeee-ffff-1111-2233445566",
+                        line = line.Substring(line.IndexOf(':') + 3);
+
+                        // Example of current string: aabbccdd-eeee-ffff-1111-2233445566",
+                        line = line.Substring(0, line.Length - 2);
+
+                        // Example of current string: aabbccdd-eeee-ffff-1111-2233445566
+                        currentConfig.CirratoID = line;
+                    } // save ID of config
+                    else if (line.Contains("configfile_model"))
+                    {
+                        // Example of current string: "configfile_model": "PCL6 Driver for Universal Print",
+                        line = line.Substring(line.IndexOf(':') + 3);
+
+                        // Example of current string: PCL6 Driver for Universal Print",
+                        line = line.Substring(0, line.Length - 2);
+
+                        // Example of current string: PCL6 Driver for Universal Print
+                        currentConfig.Driver = line;
+                    } // if all info about the current driver has been presented, reset current config object
+                    else if (line == "},")
+                    {
+                        // Find driver in driverlist and add the configuration to it
+                        DriverList[DriverList.FindIndex(d => d.Name == currentConfig.Driver)].ConfigurationList.Add(currentConfig);
+
+                        currentConfig = new Models.Configuration();
+                    }
+                }
+
+                // the last '}' in the output does not have a comma behind it, so we need to add the last config after the loop
+                DriverList[DriverList.FindIndex(d => d.Name == currentConfig.Driver)].ConfigurationList.Add(currentConfig);
+            });
+        }
+
+        /// <summary>
+        /// Gets all driver deployments from Cirrato asynchronously and saves each to the <see cref="Driver"/> in <see cref="DriverList"/>.
+        /// </summary>
+        /// <remarks>
+        /// Starts pmc.exe with the argument "deployment list --verbose", filters the output and saves the configurations to a list.
+        /// </remarks>
+        private static async Task GetCirratoDeploymentsAsync()
+        {
+            await Task.Run(() =>
+            {
+                // Example of PMC output
+                /*
+                [
+                    {
+                        "mapId": "aabbccdd-eeee-ffff-1111-2233445566",
+                        "mapDriverFileId": "aabbccdd-eeee-ffff-1111-2233445566",
+                        "mapModelId": "aabbccdd-eeee-ffff-1111-2233445566",
+                        "mapDeployed": 1,
+                        "mapInstall": 1,
+                        "mapOs": 0,
+                        "mapOsId": "W1064",
+                        "mapLocale": "",
+                        "mapSpecial": 0,
+                        "mapIm": 2,
+                        "mapQ": 0,
+                        "regionId": null,
+                        "rolloutId": null,
+                        "useOldConfig": false,
+                        "queueId": null
+                    },
+                    {
+                        "mapId": "aabbccdd-eeee-ffff-1111-2233445566",
+                        "mapDriverFileId": "aabbccdd-eeee-ffff-1111-2233445566",
+                        "mapModelId": "aabbccdd-eeee-ffff-1111-2233445566",
+                        "mapDeployed": 1,
+                        "mapInstall": 1,
+                        "mapOs": 0,
+                        "mapOsId": "W1032",
+                        "mapLocale": "",
+                        "mapSpecial": 0,
+                        "mapIm": 0,
+                        "mapQ": 0,
+                        "regionId": null,
+                        "rolloutId": null,
+                        "useOldConfig": false,
+                        "queueId": null
+                    }
+                ]
+                 */
+
+                // Start Cirrato PMC process
+                Process cirratoProcess = new Process
+                {
+                    StartInfo = new ProcessStartInfo
+                    {
+                        FileName = CirratoPath,
+                        Arguments = "deployment list --verbose",
+                        UseShellExecute = false,
+                        RedirectStandardOutput = true,
+                        CreateNoWindow = true
+                    }
+                };
+                cirratoProcess.Start();
+
+                // Save the operating system of the deployment and the ID of the driver that it's connected to
+                string driverID = "";
+                string os = "";
+
+                // Save printers to list
+                while (!cirratoProcess.StandardOutput.EndOfStream)
+                {
+                    string line = cirratoProcess.StandardOutput.ReadLine();
+
+                    if (line.StartsWith("[ERROR]"))
+                    {
+                        Logger.Log($"Error loading data from Cirrato. Error message:\n{line}", System.Diagnostics.EventLogEntryType.Error);
+                        MessageBox.Show($"Error loading data from Cirrato. Error message:\n{line}", "Cirrato PMC Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                        Application.Current.MainWindow.Close();
+                        return;
+                    }
+
+                    // remove the whitespace before the string
+                    line = line.Trim();
+
+                    // save operating system ID for configuration mapping
+                    if (line.Contains("mapOsId"))
+                    {
+                        // Example of current string: "mapOsId": "W1064",
+                        line = line.Substring(line.IndexOf(':') + 3);
+
+                        // Example of current string: W1064",
+                        line = line.Substring(0, line.Length - 2);
+
+                        // Example of current string: W1064
+                        os = line;
+                    } // save ID of model
+                    else if (line.Contains("mapModelId"))
+                    {
+                        // Example of current string: "mapModelId": "aabbccdd-eeee-ffff-1111-2233445566",
+                        line = line.Substring(line.IndexOf(':') + 3);
+
+                        // Example of current string: aabbccdd-eeee-ffff-1111-2233445566",
+                        line = line.Substring(0, line.Length - 2);
+
+                        // Example of current string: aabbccdd-eeee-ffff-1111-2233445566
+                        driverID = line;
+                    } // if all info about the current driver has been presented, reset current deployment
+                    else if (line == "},")
+                    {
+                        // Find driver in driverlist and add the deployed operating system to it
+                        int index = DriverList.FindIndex(d => d.CirratoID == driverID);
+                        if (index >= 0 && index < DriverList.Count)
+                        {
+                            if (!DriverList[index].DeployedOperatingSystems.Contains(os))
+                            {
+                                DriverList[index].DeployedOperatingSystems.Add(os);
+                            }
+                        }
+
+                        os = "";
+                        driverID = "";
+                    }
+                }
+
+                // the last '}' in the output does not have a comma behind it, so we need to add the last config after the loop
+                int lastIndex = DriverList.FindIndex(d => d.CirratoID == driverID);
+                if (lastIndex >= 0 && lastIndex < DriverList.Count)
+                {
+                    if (!DriverList[lastIndex].DeployedOperatingSystems.Contains(os))
+                    {
+                        DriverList[lastIndex].DeployedOperatingSystems.Add(os);
+                    }
+                }
             });
         }
 
@@ -569,7 +998,7 @@ namespace PrintPrince.Services
 
                         // find driver that matches current ID
                         currentPrinter.Driver = DriverList.Find(d => d.CirratoID == line);
-                    } // if all info about the current driver has been presented, reset current driver object
+                    } // if all info about the current driver has been presented, reset current printer object
                     else if (line == "},")
                     {
                         PrinterList.Add(currentPrinter);
@@ -652,7 +1081,7 @@ namespace PrintPrince.Services
             return await Task.Run(() =>
             {
                 string argumentString = $"printer modify --id \"{printer.CirratoID}\" --name \"{printer.Name}\" --path \"{printer.Region.Name}\" --ip \"{printer.IP}\" --model \"{printer.Driver.Name}\" --comment \"{printer.Description}\" --location \"{printer.Location}\"";
-
+                
                 // Start process to create printer in Cirrato
                 Process cirratoProcess = new Process
                 {
@@ -684,6 +1113,38 @@ namespace PrintPrince.Services
             {
                 string argumentString = $"queue modify --target \"{printer.Region.Name}\\{printer.Name}\" --model \"{printer.Driver.Name}\" --comment \"{printer.Description}\" --location \"{printer.Location}\"";
 
+                // Get configuration of existing printer to see if it was changed
+                string existingPrinterConfiguration = PrinterList.Where(p => p.Name == printer.Name).FirstOrDefault().Configuration;
+                // Only set new configuration if the configuration is not empty
+                if (!string.IsNullOrWhiteSpace(printer.Configuration))
+                {
+                    // If the configuration has changed, update to new configuration
+                    if (existingPrinterConfiguration != printer.Configuration)
+                    {
+                        // Get ID of configuration in Cirrato
+                        string configID = printer.Driver.ConfigurationList.Where(c => c.Name == printer.Configuration).Select(c => c.CirratoID).FirstOrDefault();
+
+                        // Make a list of strings for PMC input with operating system ID and configuration ID separated by colon
+                        List<string> configStrings = new List<string>();
+                        foreach (string os in printer.Driver.DeployedOperatingSystems)
+                        {
+                            configStrings.Add($"{os}:{configID}");
+                        }
+
+                        // Join list to make one string of all deployments to set configuration for
+                        string configString = string.Join(",", configStrings);
+
+                        // Add the configuration settings to the pmc argument
+                        argumentString = $"{argumentString} --ac \"{configString}\"";
+                    }
+                } // If the configuration is empty, remove configurations
+                else
+                {
+                    string osString = string.Join(",", printer.Driver.DeployedOperatingSystems);
+
+                    argumentString = $"{argumentString} --rc \"{osString}\"";
+                }
+
                 // Start process to create printer in Cirrato
                 Process cirratoProcess = new Process
                 {
@@ -691,6 +1152,72 @@ namespace PrintPrince.Services
                     {
                         FileName = CirratoPath,
                         Arguments = argumentString,
+                        UseShellExecute = false,
+                        RedirectStandardOutput = true,
+                        CreateNoWindow = true
+                    }
+                };
+                cirratoProcess.Start();
+
+                string output = cirratoProcess.StandardOutput.ReadLine();
+
+                return output;
+            });
+        }
+
+        /// <summary>
+        /// Add a configuration to a queue in Cirrato asynchronously.
+        /// </summary>
+        /// <param name="queue">The full path to the queue to modify.</param>
+        /// <param name="configStrings">A list containing strings with the operating system ID and the configuration ID separated by a colon.</param>
+        /// <returns>Returns the first line of the output of the command from the PMC.</returns>
+        public static async Task<string> AddQueueConfigurationAsync(string queue, List<string> configStrings)
+        {
+            return await Task.Run(() =>
+            {
+                // Join all elements in comma separated list
+                string osString = string.Join(",", configStrings);
+
+                // Start process to create printer in Cirrato
+                Process cirratoProcess = new Process
+                {
+                    StartInfo = new ProcessStartInfo
+                    {
+                        FileName = CirratoPath,
+                        Arguments = $"queue modify --target \"{queue}\" -ac \"{osString}\"",
+                        UseShellExecute = false,
+                        RedirectStandardOutput = true,
+                        CreateNoWindow = true
+                    }
+                };
+                cirratoProcess.Start();
+
+                string output = cirratoProcess.StandardOutput.ReadLine();
+
+                return output;
+            });
+        }
+
+        /// <summary>
+        /// Removes a configuration from a queue in Cirrato asynchronously.
+        /// </summary>
+        /// <param name="queue">The full path to the queue to modify.</param>
+        /// <param name="operatingSystems">The operating systems that the configuration should be removed for.</param>
+        /// <returns>Returns the first line of the output of the command from the PMC.</returns>
+        public static async Task<string> RemoveQueueConfigurationAsync(string queue, List<string> operatingSystems)
+        {
+            return await Task.Run(() =>
+            {
+                // Join all elements in comma separated list
+                string osString = string.Join(",", operatingSystems);
+
+                // Start process to create printer in Cirrato
+                Process cirratoProcess = new Process
+                {
+                    StartInfo = new ProcessStartInfo
+                    {
+                        FileName = CirratoPath,
+                        Arguments = $"queue modify --target \"{queue}\" -rc \"{osString}\"",
                         UseShellExecute = false,
                         RedirectStandardOutput = true,
                         CreateNoWindow = true

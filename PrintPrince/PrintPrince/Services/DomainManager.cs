@@ -23,7 +23,7 @@ namespace PrintPrince.Services
             AccessGroup = ConfigurationManager.AppSettings["AccessADGroup"];
 
             // If group is empty all users can use the tool, otherwise they are restricted unless member of AccessADGroup
-            if (AccessGroup != "")
+            if (!string.IsNullOrWhiteSpace(AccessGroup))
             {
                 // See if user is member of group, or nested group
                 var filter = $"(&(sAMAccountName={UserName})(memberOf:1.2.840.113556.1.4.1941:={AccessGroup}))";

@@ -58,6 +58,7 @@
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
                 <RowDefinition Height="*"/>
                 <RowDefinition Height="*"/>
                 <RowDefinition Height="*"/>
@@ -72,10 +73,10 @@
                     <TextBlock Margin="8" VerticalAlignment="Center" Text="Printer Details" Foreground="White" />
                 </Grid>
             </DockPanel>
-            <Rectangle Name="left" Fill="Black" Grid.Row="0" Grid.Column="0" Grid.RowSpan="13" />
+            <Rectangle Name="left" Fill="Black" Grid.Row="0" Grid.Column="0" Grid.RowSpan="14" />
             <Rectangle Name="top" Fill="Black" Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="10" />
-            <Rectangle Name="right" Fill="Black" Grid.Row="0" Grid.Column="9" Grid.RowSpan="13" />
-            <Rectangle Name="bottom" Fill="Black" Grid.Row="12" Grid.Column="0" Grid.ColumnSpan="10" />
+            <Rectangle Name="right" Fill="Black" Grid.Row="0" Grid.Column="9" Grid.RowSpan="14" />
+            <Rectangle Name="bottom" Fill="Black" Grid.Row="13" Grid.Column="0" Grid.ColumnSpan="10" />
 
             <Label Grid.Row="3" Grid.Column="2" Grid.ColumnSpan="2" HorizontalAlignment="Left" Margin="20,6,0,0" Content="SysMan" FontSize="20" />
             <Label Grid.Row="3" Grid.Column="3" Margin="0,8,8,0" Content="{Binding SysManIDText}" VerticalAlignment="Top" HorizontalAlignment="Right" Foreground="Khaki" FontSize="10" />
@@ -96,22 +97,24 @@
             <Label Grid.Row="4" Grid.Column="5" Margin="4,0,0,0" Content="Printer Name" VerticalAlignment="Bottom" HorizontalAlignment="Right" />
             <Label Grid.Row="5" Grid.Column="5" Margin="4,0,0,0" Content="IP Address" VerticalAlignment="Bottom" HorizontalAlignment="Right" />
             <Label Grid.Row="6" Grid.Column="5" Margin="4,0,0,0" Content="Driver" VerticalAlignment="Center" HorizontalAlignment="Right" />
-            <Label Grid.Row="7" Grid.Column="5" Margin="4,0,0,0" Content="Description" VerticalAlignment="Bottom" HorizontalAlignment="Right" />
-            <Label Grid.Row="8" Grid.Column="5" Margin="4,0,0,0" Content="Location" VerticalAlignment="Bottom" HorizontalAlignment="Right" />
-            <Label Grid.Row="9" Grid.Column="5" Margin="4,0,0,0" Content="Region" VerticalAlignment="Center" HorizontalAlignment="Right" />
+            <Label Grid.Row="7" Grid.Column="5" Margin="4,0,0,0" Content="Configuration" VerticalAlignment="Center" HorizontalAlignment="Right" />
+            <Label Grid.Row="8" Grid.Column="5" Margin="4,0,0,0" Content="Description" VerticalAlignment="Bottom" HorizontalAlignment="Right" />
+            <Label Grid.Row="9" Grid.Column="5" Margin="4,0,0,0" Content="Location" VerticalAlignment="Bottom" HorizontalAlignment="Right" />
+            <Label Grid.Row="10" Grid.Column="5" Margin="4,0,0,0" Content="Region" VerticalAlignment="Center" HorizontalAlignment="Right" />
 
             <TextBox Grid.Row="4" Grid.Column="6" Margin="0,0,12,0" materialDesign:ValidationAssist.OnlyShowOnFocus="True" Text="{Binding PrinterName, UpdateSourceTrigger=PropertyChanged, ValidatesOnNotifyDataErrors=True}" />
             <TextBox Grid.Row="5" Grid.Column="6" Margin="0,0,12,0" materialDesign:ValidationAssist.OnlyShowOnFocus="True" Text="{Binding IP, UpdateSourceTrigger=PropertyChanged, ValidatesOnNotifyDataErrors=True}" />
             <ComboBox Grid.Row="6" Grid.Column="6" Margin="0,0,12,0" ItemsSource="{Binding DriverList}" SelectedItem="{Binding SelectedDriver, UpdateSourceTrigger=PropertyChanged}" />
-            <TextBox Grid.Row="7" Grid.Column="6" Margin="0,0,12,0" materialDesign:ValidationAssist.OnlyShowOnFocus="True" Text="{Binding Description, UpdateSourceTrigger=PropertyChanged, ValidatesOnNotifyDataErrors=True}" />
-            <TextBox Grid.Row="8" Grid.Column="6" Margin="0,0,12,0" materialDesign:ValidationAssist.OnlyShowOnFocus="True" Text="{Binding Location, UpdateSourceTrigger=PropertyChanged, ValidatesOnNotifyDataErrors=True}" />
-            <ComboBox Grid.Row="9" Grid.Column="6" Margin="0,0,12,0" ItemsSource="{Binding RegionList}" SelectedItem="{Binding SelectedRegion, UpdateSourceTrigger=PropertyChanged}" />
+            <ComboBox Grid.Row="7" Grid.Column="6" Margin="0,0,12,0" IsEnabled="{Binding ConfigurationsExist}" ItemsSource="{Binding ConfigurationList}" SelectedItem="{Binding SelectedConfiguration, UpdateSourceTrigger=PropertyChanged}" />
+            <TextBox Grid.Row="8" Grid.Column="6" Margin="0,0,12,0" materialDesign:ValidationAssist.OnlyShowOnFocus="True" Text="{Binding Description, UpdateSourceTrigger=PropertyChanged, ValidatesOnNotifyDataErrors=True}" />
+            <TextBox Grid.Row="9" Grid.Column="6" Margin="0,0,12,0" materialDesign:ValidationAssist.OnlyShowOnFocus="True" Text="{Binding Location, UpdateSourceTrigger=PropertyChanged, ValidatesOnNotifyDataErrors=True}" />
+            <ComboBox Grid.Row="10" Grid.Column="6" Margin="0,0,12,0" ItemsSource="{Binding RegionList}" SelectedItem="{Binding SelectedRegion, UpdateSourceTrigger=PropertyChanged}" />
 
             <Button Content="Create in SysMan" Width="160" Grid.Row="7" Grid.RowSpan="2" Grid.Column="2" Grid.ColumnSpan="2" ToolTip="Create in SysMan"
                     Margin="0,8,2,0" VerticalAlignment="Top" HorizontalAlignment="Right" Command="{Binding CreateCommand}"
                     Style="{DynamicResource MaterialDesignFlatButton}" Visibility="{Binding SysManPrinterNotExists, Converter={StaticResource BooleanToVisibilityConverter}}"/>
             <StackPanel Orientation="Vertical" Visibility="{Binding SysManPrinterExists, Converter={StaticResource BooleanToVisibilityConverter}}"
-                        Grid.Row="7" Grid.Column="2" Grid.ColumnSpan="2" Grid.RowSpan="4" Margin="4,12,4,4">
+                        Grid.Row="7" Grid.Column="2" Grid.ColumnSpan="2" Grid.RowSpan="5" Margin="4,12,4,4">
                 <StackPanel HorizontalAlignment="Center" Orientation="Horizontal">
                     <Label Content="SysMan Installation Targets:"/>
                     <Label Content="{Binding InstallationTargets.Count}"/>
@@ -136,13 +139,13 @@
                 </ListView>
             </StackPanel>
 
-            <StackPanel VerticalAlignment="Bottom" HorizontalAlignment="Center" Orientation="Horizontal" Grid.Column="2" Grid.ColumnSpan="5" Grid.Row="11" Margin="10">
+            <StackPanel VerticalAlignment="Bottom" HorizontalAlignment="Center" Orientation="Horizontal" Grid.Column="2" Grid.ColumnSpan="5" Grid.Row="12" Margin="10">
                 <Button Margin="4" Width="120" Content="Update" Command="{Binding SaveCommand}" ToolTip="Update Info in Cirrato and SysMan"/>
                 <Button Style="{DynamicResource MaterialDesignRaisedAccentButton}" Margin="4" Width="120" Content="Delete" Command="{Binding DeleteCommand}" ToolTip="Delete printer in Cirrato and SysMan"/>
                 <Button Margin="4" Width="120" Content="Cancel" Command="{Binding CancelCommand}" ToolTip="Cancel Editing" />
             </StackPanel>
 
-            <ProgressBar Grid.Column="6" Grid.Row="11" Style="{DynamicResource MaterialDesignCircularProgressBar}" Visibility="{Binding Loading, Converter={StaticResource BooleanToVisibilityConverter}}"
+            <ProgressBar Grid.Column="6" Grid.Row="12" Style="{DynamicResource MaterialDesignCircularProgressBar}" Visibility="{Binding Loading, Converter={StaticResource BooleanToVisibilityConverter}}"
                          Margin="0,0,20,25" HorizontalAlignment="Right" VerticalAlignment="Bottom" Width="30" IsIndeterminate="True"/>
         </Grid>
     </Border>

@@ -23,9 +23,10 @@
     <Grid HorizontalAlignment="Center" VerticalAlignment="Center" Width="Auto" Height="Auto" Background="{DynamicResource MaterialDesignCardBackground}">
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="*"/>
-            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="240"/>
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
             <RowDefinition Height="*"/>
             <RowDefinition Height="*"/>
             <RowDefinition Height="*"/>
@@ -50,33 +51,41 @@
         <Label Grid.Column="0" Grid.Row="2" Content="Cirrato Region" VerticalAlignment="Top" HorizontalAlignment="Right" HorizontalContentAlignment="Right"/>
         <Label Grid.Column="0" Grid.Row="3" Content="IP Address" VerticalAlignment="Top" HorizontalAlignment="Right" HorizontalContentAlignment="Right"/>
         <Label Grid.Column="0" Grid.Row="4" Content="Print Driver" VerticalAlignment="Top" HorizontalAlignment="Right" HorizontalContentAlignment="Right"/>
-        <Label Grid.Column="0" Grid.Row="5" Content="Description" VerticalAlignment="Top" HorizontalAlignment="Right" HorizontalContentAlignment="Right"/>
-        <Label Grid.Column="0" Grid.Row="6" Content="Location" VerticalAlignment="Top" HorizontalAlignment="Right" HorizontalContentAlignment="Right" />
-        <Label Grid.Column="0" Grid.Row="7" Content="Create in SysMan" VerticalAlignment="Top" HorizontalAlignment="Right" HorizontalContentAlignment="Right" />
+        <Label Grid.Column="0" Grid.Row="5" Content="Configuration" VerticalAlignment="Top" HorizontalAlignment="Right" HorizontalContentAlignment="Right"/>
+        <Label Grid.Column="0" Grid.Row="6" Content="Description" VerticalAlignment="Top" HorizontalAlignment="Right" HorizontalContentAlignment="Right"/>
+        <Label Grid.Column="0" Grid.Row="7" Content="Location" VerticalAlignment="Top" HorizontalAlignment="Right" HorizontalContentAlignment="Right" />
+        <Label Grid.Column="0" Grid.Row="8" Content="Create in SysMan" VerticalAlignment="Top" HorizontalAlignment="Right" HorizontalContentAlignment="Right" />
         
-        <Label Grid.Column="0" Grid.Row="8" Grid.ColumnSpan="2" Content="{Binding LoadingText}" VerticalAlignment="Top" HorizontalAlignment="Right" HorizontalContentAlignment="Right" Margin="0,0,60,0" />
+        <Label Grid.Column="0" Grid.Row="9" Grid.ColumnSpan="2" Content="{Binding LoadingText}" VerticalAlignment="Top" HorizontalAlignment="Right" HorizontalContentAlignment="Right" Margin="0,0,60,0" />
 
         <StackPanel Grid.Column="1" Grid.Row="0" Orientation="Horizontal" Width="Auto" Height="Auto">
-            <ComboBox ToolTip="Site Location of Printer" ItemsSource="{Binding Sites}" SelectedItem="{Binding SelectedSite}" HorizontalAlignment="Left" VerticalAlignment="Top" Width="50" Height="27" SelectedIndex="0" Margin="10,4,10,0" />
-            <ComboBox ToolTip="Building Number or Name" ItemsSource="{Binding Buildings}" SelectedItem="{Binding SelectedBuilding}" HorizontalAlignment="Left" VerticalAlignment="Top" Width="50" Height="27" SelectedIndex="0" Margin="10,4,10,0" />
-            <ComboBox ToolTip="Floor of the Building" ItemsSource="{Binding Floors}" SelectedItem="{Binding SelectedFloor}" HorizontalAlignment="Left" VerticalAlignment="Top" Width="50" Height="27" SelectedIndex="0" Margin="10,4,10,0" />
+            <ComboBox ToolTip="Site Location of Printer" ItemsSource="{Binding Sites}" SelectedItem="{Binding SelectedSite}" HorizontalAlignment="Left" VerticalAlignment="Top" Width="62" Height="27" SelectedIndex="0" Margin="4,4,12,0" />
+            <ComboBox ToolTip="Building Number or Name" ItemsSource="{Binding Buildings}" SelectedItem="{Binding SelectedBuilding}" HorizontalAlignment="Left" VerticalAlignment="Top" Width="62" Height="27" SelectedIndex="0" Margin="10,4,12,0" />
+            <ComboBox ToolTip="Floor of the Building" ItemsSource="{Binding Floors}" SelectedItem="{Binding SelectedFloor}" HorizontalAlignment="Right" VerticalAlignment="Top" Width="62" Height="27" SelectedIndex="0" Margin="10,4,0,0" />
         </StackPanel>
         
         <TextBox Grid.Column="1" Grid.Row="1" Margin="4,0,4,0" DockPanel.Dock="Right" ToolTip="Printer Name" Text="{Binding PrinterName, UpdateSourceTrigger=PropertyChanged, ValidatesOnNotifyDataErrors=True}" Height="24" TextWrapping="Wrap" VerticalContentAlignment="Center" VerticalAlignment="Bottom" HorizontalAlignment="Stretch" materialDesign:HintAssist.Hint="{Binding SuggestedName}" materialDesign:ValidationAssist.OnlyShowOnFocus="True"/>
         <ComboBox Grid.Column="1" Grid.Row="2" Margin="4,0,4,0" DockPanel.Dock="Left" ToolTip="Cirrato Printer Path" ItemsSource="{Binding CirratoRegions}" SelectedItem="{Binding SelectedRegion}" SelectedIndex="0" VerticalContentAlignment="Bottom" Height="26" VerticalAlignment="Bottom" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left" />
         <TextBox Grid.Column="1" Grid.Row="3" ToolTip="IP Address of the Printer" Text="{Binding IPAddress, ValidatesOnNotifyDataErrors=True, UpdateSourceTrigger=PropertyChanged}" Margin="4,0,4,0" HorizontalAlignment="Stretch" Height="27" TextWrapping="Wrap" VerticalAlignment="Top" materialDesign:HintAssist.Hint="127.0.0.1" materialDesign:ValidationAssist.OnlyShowOnFocus="True"/>
-        <ComboBox Grid.Column="1" Grid.Row="4" ToolTip="Driver for the Printer" ItemsSource="{Binding CirratoDrivers}" SelectedItem="{Binding SelectedDriver}" Margin="4,0,4,0" HorizontalAlignment="Stretch" VerticalAlignment="Top" Height="27" SelectedIndex="0">
+        <ComboBox Grid.Column="1" Grid.Row="4" ToolTip="Driver for the Printer" ItemsSource="{Binding CirratoDrivers}" SelectedItem="{Binding SelectedDriver, UpdateSourceTrigger=PropertyChanged}" Margin="4,0,4,0" HorizontalAlignment="Stretch" VerticalAlignment="Top" Height="27" SelectedIndex="0">
             <ComboBox.ItemTemplate>
                 <DataTemplate>
                     <ContentPresenter Content="{Binding}" RecognizesAccessKey="False" />
                 </DataTemplate>
             </ComboBox.ItemTemplate>
         </ComboBox>
-        <TextBox Grid.Column="1" Grid.Row="5" ToolTip="Model, Description or Useful Information" Margin="4,0,4,0" Text="{Binding PrinterComment, ValidatesOnNotifyDataErrors=True, UpdateSourceTrigger=PropertyChanged}" HorizontalAlignment="Stretch" Height="27" TextWrapping="Wrap" VerticalAlignment="Top" materialDesign:HintAssist.Hint="Printer Model" materialDesign:ValidationAssist.OnlyShowOnFocus="True" />
-        <TextBox Grid.Column="1" Grid.Row="6" ToolTip="Physical Location of the Printer" Margin="4,0,4,0" Text="{Binding PrinterLocation, ValidatesOnNotifyDataErrors=True, UpdateSourceTrigger=PropertyChanged}" HorizontalAlignment="Stretch" Height="27" TextWrapping="Wrap" VerticalAlignment="Top" materialDesign:HintAssist.Hint="Building, Floor, Room" materialDesign:ValidationAssist.OnlyShowOnFocus="True" />
-        <ToggleButton Grid.Column="1" Grid.Row="7" HorizontalAlignment="Left" VerticalAlignment="Top" ToolTip="If Printer Should be Created in SysMan" IsChecked="{Binding CreateInSysMan, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Margin="2,5,0,0" />
+        <ComboBox Grid.Column="1" Grid.Row="5" ToolTip="Configuration for the Driver" IsEnabled="{Binding ConfigurationsExist}" ItemsSource="{Binding ConfigurationList}" SelectedItem="{Binding SelectedConfiguration, UpdateSourceTrigger=PropertyChanged}" Margin="4,0,4,0" HorizontalAlignment="Stretch" VerticalAlignment="Top" Height="27" SelectedIndex="0">
+            <ComboBox.ItemTemplate>
+                <DataTemplate>
+                    <ContentPresenter Content="{Binding}" RecognizesAccessKey="False" />
+                </DataTemplate>
+            </ComboBox.ItemTemplate>
+        </ComboBox>
+        <TextBox Grid.Column="1" Grid.Row="6" ToolTip="Model, Description or Useful Information" Margin="4,0,4,0" Text="{Binding PrinterComment, ValidatesOnNotifyDataErrors=True, UpdateSourceTrigger=PropertyChanged}" HorizontalAlignment="Stretch" Height="27" TextWrapping="Wrap" VerticalAlignment="Top" materialDesign:HintAssist.Hint="Printer Model" materialDesign:ValidationAssist.OnlyShowOnFocus="True" />
+        <TextBox Grid.Column="1" Grid.Row="7" ToolTip="Physical Location of the Printer" Margin="4,0,4,0" Text="{Binding PrinterLocation, ValidatesOnNotifyDataErrors=True, UpdateSourceTrigger=PropertyChanged}" HorizontalAlignment="Stretch" Height="27" TextWrapping="Wrap" VerticalAlignment="Top" materialDesign:HintAssist.Hint="Building, Floor, Room" materialDesign:ValidationAssist.OnlyShowOnFocus="True" />
+        <ToggleButton Grid.Column="1" Grid.Row="8" HorizontalAlignment="Left" VerticalAlignment="Top" ToolTip="If Printer Should be Created in SysMan" IsChecked="{Binding CreateInSysMan, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Margin="2,5,0,0" />
 
-        <Button Grid.RowSpan="2" Grid.Column="1" Grid.Row="7"
+        <Button Grid.RowSpan="2" Grid.Column="1" Grid.Row="8"
                 Style="{StaticResource MaterialDesignFloatingActionMiniButton}"
                 HorizontalAlignment="Right"
                 VerticalAlignment="Top"
@@ -88,7 +97,7 @@
 
         <ProgressBar Style="{StaticResource MaterialDesignCircularProgressBar}"
                      Visibility="{Binding Loading, Converter={StaticResource BooleanToVisibilityConverter}}"
-                     Grid.RowSpan="2" Grid.Column="1" Grid.Row="7"
+                     Grid.RowSpan="2" Grid.Column="1" Grid.Row="8"
                      IsIndeterminate="True"
                      HorizontalAlignment="Right"
                      VerticalAlignment="Top"

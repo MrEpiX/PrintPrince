@@ -179,9 +179,7 @@ namespace PrintPrince.ViewModels
                 {
                     var printerDetails = new PrinterDetailsViewModel(_dialogService,
                         FilteredPrinters[ListIndex],
-                        PrinterRepository.SysManPrinterList.Where(p => p.Name == FilteredPrinters[ListIndex].Name).FirstOrDefault(),
-                        PrinterRepository.DriverList,
-                        PrinterRepository.RegionList);
+                        PrinterRepository.SysManPrinterList.Where(p => p.Name == FilteredPrinters[ListIndex].Name).FirstOrDefault());
 
                     bool? result = _dialogService.ShowDialog(this, printerDetails);
 

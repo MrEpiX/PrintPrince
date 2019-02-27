@@ -45,11 +45,53 @@ namespace PrintPrince.ViewModels
         /// </remarks>
         public List<string> CirratoDrivers
         {
-            get { return _cirratoDrivers; }
+            get => _cirratoDrivers;
+            set => Set(nameof(CirratoDrivers), ref _cirratoDrivers, value);
+        }
+
+        private List<string> _configurationList;
+        /// <summary>
+        /// List of configurations in the Cirrato environment for the currently selected driver.
+        /// </summary>
+        /// <remarks>
+        /// This list is populated asynchronously from Cirrato through the PMC using <see cref="PrinterRepository"/>.
+        /// </remarks>
+        public List<string> ConfigurationList
+        {
+            get => _configurationList;
             set
             {
-                Set(nameof(CirratoDrivers), ref _cirratoDrivers, value);
+                Set(nameof(ConfigurationList), ref _configurationList, value);
+
+                if (value != null)
+                {
+                    ConfigurationsExist = value.Count > 0;
+                }
+                else
+                {
+                    ConfigurationsExist = false;
+                }
             }
+        }
+
+        private string _selectedConfiguration;
+        /// <summary>
+        /// The currently selected configuration.
+        /// </summary>
+        public string SelectedConfiguration
+        {
+            get => _selectedConfiguration;
+            set => Set(nameof(SelectedConfiguration), ref _selectedConfiguration, value);
+        }
+
+        private bool _configurationsExist;
+        /// <summary>
+        /// If there are any configurations for the currently selected driver.
+        /// </summary>
+        public bool ConfigurationsExist
+        {
+            get => _configurationsExist;
+            set => Set(nameof(ConfigurationsExist), ref _configurationsExist, value);
         }
 
         private List<string> _cirratoPrinters;
@@ -289,6 +331,12 @@ namespace PrintPrince.ViewModels
             set
             {
                 Set(nameof(SelectedDriver), ref _selectedDriver, value);
+
+                // Get configurations for driver and add an empty option as the first element as option for default configuration
+                ConfigurationList = PrinterRepository.DriverList.Where(d => d.Name == value).Select(d => d.ConfigurationList).FirstOrDefault().Select(c => c.Name).ToList();
+                // Make sure user can select no configuration if they accidentally choose one and want to revert
+                ConfigurationList.Insert(0, "[None]");
+                SelectedConfiguration = "[None]";
             }
         }
 
@@ -514,9 +562,7 @@ namespace PrintPrince.ViewModels
         {
             CreatePrinterCommand = new RelayCommand(async () => await CreatePrinterAsync(), () => CanCreatePrinter());
             ExitCommand = new RelayCommand(() => Application.Current.MainWindow.Close());
-
-            Console.WriteLine(DomainManager.DomainName);
-
+            
             RefreshLoading();
             LoadPrinterData();
         }
@@ -554,6 +600,7 @@ namespace PrintPrince.ViewModels
             csb.AppendLine($"Cirrato Region: {SelectedRegion}");
             csb.AppendLine($"IP Address: {IPAddress}");
             csb.AppendLine($"Driver: {SelectedDriver}");
+            csb.AppendLine($"Configuration: {SelectedConfiguration}");
             csb.AppendLine($"Comment: {PrinterComment}");
             csb.AppendLine($"Location: {PrinterLocation}");
             csb.AppendLine($"Create in SysMan: {CreateInSysMan.ToString()}");
@@ -646,17 +693,22 @@ namespace PrintPrince.ViewModels
             {
                 string result = await PrinterRepository.CreatePrinterAsync($"{SelectedRegion}\\{PrinterName}", IPAddress, SelectedDriver, PrinterComment, PrinterLocation);
 
-                // If the PMC output is not a success, throw error message and exit
+                // If the PMC output is not a success, throw error message
                 if (!result.StartsWith("[OK]"))
                 {
+                    Logger.Log($"Failed to create printer in Cirrato! Error message:\n{result}", System.Diagnostics.EventLogEntryType.Error);
                     MessageBox.Show($"Failed to create printer in Cirrato! Error message:\n{result}", "Cirrato PMC Error", MessageBoxButton.OK, MessageBoxImage.Error);
                     success = false;
                 }
                 else
                 {
-                    // Get ID/GUID from output [OK] "aabbccdd-eeee-ffff-1111-2233445566"
+                    // Get ID of printer to save, from output [OK] "aabbccdd-eeee-ffff-1111-2233445566"
                     string id = result.Substring(result.IndexOf('"'));
                     id = id.Trim('"');
+
+                    // Get currently selected driver and region with full info
+                    Driver driver = PrinterRepository.DriverList.Where(d => d.Name == SelectedDriver).FirstOrDefault();
+                    Region region = PrinterRepository.RegionList.Where(r => r.Name == SelectedRegion).FirstOrDefault();
 
                     Printer newPrinter = new Printer
                     {
@@ -664,16 +716,39 @@ namespace PrintPrince.ViewModels
                         ExistsInSysMan = false,
                         Description = PrinterComment,
                         Location = PrinterLocation,
-                        Driver = PrinterRepository.DriverList.Where(d => d.Name == SelectedDriver).FirstOrDefault(),
+                        Driver = driver,
                         IP = IPAddress,
-                        Region = PrinterRepository.RegionList.Where(r => r.Name == SelectedRegion).FirstOrDefault(),
+                        Region = region,
                         CirratoID = id,
-                        SysManID = ""
+                        SysManID = "",
+                        Configuration = SelectedConfiguration == "[None]" ? "" : SelectedConfiguration // Set configuration to empty if none
                     };
                     // Add new Cirrato printer to list
                     PrinterRepository.AddPrinter(newPrinter);
                     
                     Logger.Log($"Created printer in Cirrato with information:\n{newPrinter.ToString()}", System.Diagnostics.EventLogEntryType.Information);
+
+                    // Add configuration to queue of the newly created printer if user selected a config
+                    if (!string.IsNullOrWhiteSpace(SelectedConfiguration))
+                    {
+                        string configID = driver.ConfigurationList.Where(c => c.Name == SelectedConfiguration).Select(c => c.CirratoID).FirstOrDefault();
+
+                        List<string> configStrings = new List<string>();
+                        // Make a list of strings for PMC input with operating system ID and configuration ID separated by colon
+                        foreach (string os in driver.DeployedOperatingSystems)
+                        {
+                            configStrings.Add($"{os}:{configID}");
+                        }
+
+                        string queueResult = await PrinterRepository.AddQueueConfigurationAsync($"{region.Name}\\{PrinterName}", configStrings);
+
+                        if (!queueResult.StartsWith("[OK]"))
+                        {
+                            Logger.Log($"Failed to add configuration {SelectedConfiguration} for operating systems {string.Join(", ", driver.DeployedOperatingSystems)} to printer queue {PrinterName} in Cirrato! Error message:\n{queueResult}", System.Diagnostics.EventLogEntryType.Error);
+                            MessageBox.Show($"Failed to add configuration {SelectedConfiguration} for operating systems {string.Join(", ", driver.DeployedOperatingSystems)} to printer queue {PrinterName} in Cirrato! Error message:\n{queueResult}", "Cirrato PMC Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                            success = false;
+                        }
+                    }
                 }
             }
             catch (InvalidOperationException iopex)

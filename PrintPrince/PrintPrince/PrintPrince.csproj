@@ -109,6 +109,8 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="Models\Deployment.cs" />
+    <Compile Include="Models\Configuration.cs" />
     <Compile Include="Models\Region.cs" />
     <Compile Include="Models\SysManPrinter.cs" />
     <Compile Include="Services\GridViewSort.cs" />

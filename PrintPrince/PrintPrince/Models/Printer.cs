@@ -46,6 +46,10 @@ namespace PrintPrince.Models
         /// If the printer exists in SysMan or not.
         /// </summary>
         public bool ExistsInSysMan { get; set; }
+        /// <summary>
+        /// The configuration set for the queue associated with the printer.
+        /// </summary>
+        public string Configuration { get; set; }
 
         /// <summary>
         /// Creates a new instance of the <see cref="Printer"/> class.
@@ -67,6 +71,7 @@ namespace PrintPrince.Models
             sb.AppendLine($"SysMan ID: {SysManID}");
             sb.AppendLine($"IP Address: {IP}");
             sb.AppendLine($"Print Driver: {Driver.Name}");
+            sb.AppendLine($"Configuration: {Configuration}");
             sb.AppendLine($"Description: {Description}");
             sb.AppendLine($"Location: {Location}");
 

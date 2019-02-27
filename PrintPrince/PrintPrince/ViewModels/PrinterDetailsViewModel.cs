@@ -5,6 +5,7 @@ using PrintPrince.Models;
 using PrintPrince.Services;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
@@ -234,6 +235,16 @@ namespace PrintPrince.ViewModels
             set => Set(nameof(DriverList), ref _driverList, value);
         }
 
+        private ObservableCollection<string> _configurationList;
+        /// <summary>
+        /// List of all configurations for the selected driver.
+        /// </summary>
+        public ObservableCollection<string> ConfigurationList
+        {
+            get => _configurationList;
+            set => Set(nameof(ConfigurationList), ref _configurationList, value);
+        }
+
         private string _selectedRegion;
         /// <summary>
         /// Currently selected region of printer.
@@ -251,7 +262,39 @@ namespace PrintPrince.ViewModels
         public string SelectedDriver
         {
             get => _selectedDriver;
-            set => Set(nameof(SelectedDriver), ref _selectedDriver, value);
+            set
+            {
+                Set(nameof(SelectedDriver), ref _selectedDriver, value);
+                
+                // Get configurations for driver and add an empty option as the first element as option for default configuration
+                ConfigurationList = new ObservableCollection<string>(PrinterRepository.DriverList.Where(d => d.Name == value).Select(d => d.ConfigurationList).FirstOrDefault().Select(c => c.Name).ToList());
+
+                ConfigurationsExist = ConfigurationList.Count > 0;
+
+                // Make sure user can select no configuration if they accidentally choose one and want to revert
+                ConfigurationList.Insert(0, "[None]");
+                SelectedConfiguration = "[None]";
+            }
+        }
+
+        private string _selectedConfiguration;
+        /// <summary>
+        /// Currently selected configuration of driver.
+        /// </summary>
+        public string SelectedConfiguration
+        {
+            get => _selectedConfiguration;
+            set => Set(nameof(SelectedConfiguration), ref _selectedConfiguration, value);
+        }
+
+        private bool _configurationsExist;
+        /// <summary>
+        /// If there are any configurations for the selected driver.
+        /// </summary>
+        public bool ConfigurationsExist
+        {
+            get => _configurationsExist;
+            set => Set(nameof(ConfigurationsExist), ref _configurationsExist, value);
         }
 
         private bool _loading;
@@ -314,14 +357,17 @@ namespace PrintPrince.ViewModels
         /// <param name="dialogService">Service to handle dialog window.</param>
         /// <param name="printer">Cirrato Printer to edit.</param>
         /// <param name="sysmanPrinter">SysMan Printer to edit.</param>
-        /// <param name="driverList">List of all drivers.</param>
-        /// <param name="regionList">List of all regions.</param>
-        public PrinterDetailsViewModel(IDialogService dialogService, Printer printer, SysManPrinter sysmanPrinter, List<Driver> driverList, List<Region> regionList)
+        public PrinterDetailsViewModel(IDialogService dialogService, Printer printer, SysManPrinter sysmanPrinter)
         {
             Loading = false;
             _dialogService = dialogService;
 
+            // Set properties used for binding
             CurrentCirratoPrinter = printer;
+            if (string.IsNullOrWhiteSpace(CurrentCirratoPrinter.Configuration))
+            {
+                CurrentCirratoPrinter.Configuration = "";
+            }
             CurrentSysManPrinter = sysmanPrinter;
 
             PrinterName = printer.Name;
@@ -360,11 +406,22 @@ namespace PrintPrince.ViewModels
 
             SysManPrinterNotExists = !SysManPrinterExists;
 
-            DriverList = driverList.Select(d => d.Name).ToList();
-            RegionList = regionList.Select(r => r.Name).ToList();
+            DriverList = PrinterRepository.DriverList.Select(d => d.Name).ToList();
+            RegionList = PrinterRepository.RegionList.Select(r => r.Name).ToList();
+            // ConfigurationList = CurrentCirratoPrinter.Driver.ConfigurationList.Select(c => c.Name).ToList();
 
             SelectedDriver = DriverList.Where(d => d == CurrentCirratoPrinter.Driver.Name).FirstOrDefault();
             SelectedRegion = RegionList.Where(r => r == CurrentCirratoPrinter.Region.Name).FirstOrDefault();
+
+            // Set configuration to none if empty
+            if (string.IsNullOrWhiteSpace(CurrentCirratoPrinter.Configuration))
+            {
+                SelectedConfiguration = "[None]";
+            }
+            else
+            {
+                SelectedConfiguration = CurrentCirratoPrinter.Configuration;
+            }
 
             // Can only save or delete if access allowes
             SaveCommand = new RelayCommand(async () => await Save(),
@@ -551,6 +608,7 @@ namespace PrintPrince.ViewModels
             if (Description != CurrentCirratoPrinter.Description) { sb.AppendLine($"Description (Cirrato): {CurrentCirratoPrinter.Description} > {Description}"); }
             if (Location != CurrentCirratoPrinter.Location) { sb.AppendLine($"Location (Cirrato): {CurrentCirratoPrinter.Location} > {Location}"); }
             if (SelectedDriver != CurrentCirratoPrinter.Driver.Name) { sb.AppendLine($"Driver: {CurrentCirratoPrinter.Driver.Name} > {SelectedDriver}"); }
+            if ((SelectedConfiguration == "[None]" ? "" : SelectedConfiguration) != CurrentCirratoPrinter.Configuration) { sb.AppendLine($"Configuration: {(CurrentCirratoPrinter.Configuration == "" ? "[None]" : CurrentCirratoPrinter.Configuration)} > {SelectedConfiguration}"); }
             if (SelectedRegion != CurrentCirratoPrinter.Region.Name) { sb.AppendLine($"Region: {CurrentCirratoPrinter.Region.Name} > {SelectedRegion}"); }
 
             // set the contents of the Cirrato logging text
@@ -563,24 +621,27 @@ namespace PrintPrince.ViewModels
                 if (SysManLocation != CurrentSysManPrinter.Location) { sb.AppendLine($"Location (SysMan): {CurrentSysManPrinter.Location} > {SysManLocation}"); }
             }
 
+            // Ask for confirmation
             var confirmationBox = new ConfirmationBoxViewModel($"Do you want to update the printer {CurrentCirratoPrinter.Name} with the following information?", sb.ToString());
 
             bool? confirmation = _dialogService.ShowDialog(this, confirmationBox);
-
-            Printer printerToChange = new Printer {
-                CirratoID = CurrentCirratoPrinter.CirratoID,
-                SysManID = CurrentCirratoPrinter.SysManID,
-                Name = PrinterName,
-                IP = IP,
-                Description = Description,
-                Location = Location,
-                Driver = PrinterRepository.DriverList.Where(d => d.Name == SelectedDriver).FirstOrDefault(),
-                Region = PrinterRepository.RegionList.Where(r => r.Name == SelectedRegion).FirstOrDefault(),
-                ExistsInSysMan = CurrentCirratoPrinter.ExistsInSysMan
-            };
-
+            
             if (confirmation == true)
             {
+                Printer printerToChange = new Printer
+                {
+                    CirratoID = CurrentCirratoPrinter.CirratoID,
+                    SysManID = CurrentCirratoPrinter.SysManID,
+                    Name = PrinterName,
+                    IP = IP,
+                    Description = Description,
+                    Location = Location,
+                    Driver = PrinterRepository.DriverList.Where(d => d.Name == SelectedDriver).FirstOrDefault(),
+                    Region = PrinterRepository.RegionList.Where(r => r.Name == SelectedRegion).FirstOrDefault(),
+                    ExistsInSysMan = CurrentCirratoPrinter.ExistsInSysMan,
+                    Configuration = SelectedConfiguration == "[None]" ? "" : SelectedConfiguration // Set configuration to empty if none
+                };
+
                 if (IsCirratoInformationModified())
                 {
                     try
@@ -809,27 +870,13 @@ namespace PrintPrince.ViewModels
         /// </remarks>
         private bool IsPrinterModified()
         {
-            if (PrinterName != CurrentCirratoPrinter.Name ||
-                IP != CurrentCirratoPrinter.IP ||
-                Description != CurrentCirratoPrinter.Description ||
-                Location != CurrentCirratoPrinter.Location ||
-                SelectedDriver != CurrentCirratoPrinter.Driver.Name ||
-                SelectedRegion != CurrentCirratoPrinter.Region.Name)
+            if (IsCirratoInformationModified())
             {
                 return true;
             }
             else if (CurrentSysManPrinter != null)
             {
-                if (PrinterName != CurrentSysManPrinter.Name ||
-                SysManDescription != CurrentSysManPrinter.Description ||
-                SysManLocation != CurrentSysManPrinter.Location)
-                {
-                    return true;
-                }
-                else
-                {
-                    return false;
-                }
+                return IsSysManInformationModified();
             }
             else
             {
@@ -848,7 +895,8 @@ namespace PrintPrince.ViewModels
                 Description != CurrentCirratoPrinter.Description ||
                 Location != CurrentCirratoPrinter.Location ||
                 SelectedDriver != CurrentCirratoPrinter.Driver.Name ||
-                SelectedRegion != CurrentCirratoPrinter.Region.Name)
+                SelectedRegion != CurrentCirratoPrinter.Region.Name ||
+                (SelectedConfiguration == "[None]" ? "" : SelectedConfiguration) != CurrentCirratoPrinter.Configuration)
             {
                 return true;
             }
