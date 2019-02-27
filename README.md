@@ -82,4 +82,4 @@ Print Prince implements and uses the following libraries, frameworks or solution
 **[DomainManager](https://stackoverflow.com/a/23390899)** is written by StackOverflow user Nate B.
 
 # Disclaimers
-While Print Prince is used to assist with printer management in environments using commercial systems, neither Print Prince nor the developer has any affiliation with the owners or developers of these systems, Print Prince simply uses the APIs with the functionality they had during the development of Print Prince.
+While Print Prince is used to assist with printer management in environments using commercial systems, neither Print Prince nor the developer has any affiliation with the owners or developers of these systems, Print Prince simply uses the APIs with the functionality they had during the development of Print Prince (SysMan 3.1.18291, Cirrato PMC 2.3.2).
