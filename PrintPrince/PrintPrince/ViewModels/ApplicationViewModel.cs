@@ -321,8 +321,8 @@ namespace PrintPrince.ViewModels
                 }
                 else
                 {
-                    Logger.Log($"Communication with Cirrato failed! Error message:\n{status}", System.Diagnostics.EventLogEntryType.Error);
-                    MessageBox.Show($"Communication with Cirrato failed! Error message:\n{status}", "Cirrato PMC Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                    Logger.Log($"Could not log into Cirrato! Error message:\n{status}", System.Diagnostics.EventLogEntryType.Error);
+                    MessageBox.Show($"Could not log into Cirrato! Error message:\n{status}", "Cirrato PMC Error", MessageBoxButton.OK, MessageBoxImage.Error);
                     Application.Current.MainWindow.Close();
                     return;
                 }

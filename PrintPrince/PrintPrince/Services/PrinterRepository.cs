@@ -539,7 +539,7 @@ namespace PrintPrince.Services
                     {
                         // Find printer in list and set the configuration to the name of the configuration in the driver's list of configurations matched by ID
                         int index = PrinterList.FindIndex(p => p.Name == queueName);
-                        if (!string.IsNullOrWhiteSpace(configurationID))
+                        if (!string.IsNullOrWhiteSpace(configurationID) && index >= 0 && index < PrinterList.Count)
                         {
                             PrinterList[index].Configuration = DriverList.Where(d => d.ConfigurationList.Any(c => c.CirratoID == configurationID)).FirstOrDefault().ConfigurationList.Where(c => c.CirratoID == configurationID).FirstOrDefault().Name;
                         }
@@ -550,7 +550,7 @@ namespace PrintPrince.Services
 
                 // the last '}' in the output does not have a comma behind it, so we need to add the last config after the loop
                 int lastIndex = PrinterList.FindIndex(p => p.Name == queueName);
-                if (!string.IsNullOrWhiteSpace(configurationID))
+                if (!string.IsNullOrWhiteSpace(configurationID) && lastIndex >= 0 && lastIndex < PrinterList.Count)
                 {
                     PrinterList[lastIndex].Configuration = DriverList.Where(d => d.ConfigurationList.Any(c => c.CirratoID == configurationID)).FirstOrDefault().ConfigurationList.Where(c => c.CirratoID == configurationID).FirstOrDefault().Name;
                 }
@@ -677,15 +677,24 @@ namespace PrintPrince.Services
                     } // if all info about the current driver has been presented, reset current config object
                     else if (line == "},")
                     {
+                        int index = DriverList.FindIndex(d => d.Name == currentConfig.Driver);
                         // Find driver in driverlist and add the configuration to it
-                        DriverList[DriverList.FindIndex(d => d.Name == currentConfig.Driver)].ConfigurationList.Add(currentConfig);
+                        if (index >= 0 && index < DriverList.Count)
+                        {
+                            DriverList[index].ConfigurationList.Add(currentConfig);
+                        }
 
                         currentConfig = new Models.Configuration();
                     }
                 }
 
                 // the last '}' in the output does not have a comma behind it, so we need to add the last config after the loop
-                DriverList[DriverList.FindIndex(d => d.Name == currentConfig.Driver)].ConfigurationList.Add(currentConfig);
+                int lastIndex = DriverList.FindIndex(d => d.Name == currentConfig.Driver);
+                // Find driver in driverlist and add the configuration to it
+                if (lastIndex >= 0 && lastIndex < DriverList.Count)
+                {
+                    DriverList[lastIndex].ConfigurationList.Add(currentConfig);
+                }
             });
         }
 
