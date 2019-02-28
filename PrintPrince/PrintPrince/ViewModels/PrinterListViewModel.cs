@@ -30,17 +30,14 @@ namespace PrintPrince.ViewModels
             private set => Set(nameof(PrinterList), ref _printerList, value);
         }
 
-        private int _listIndex;
+        private Printer _selectedPrinter;
         /// <summary>
-        /// Index of currently selected printer in list.
+        /// Currently selected printer in list.
         /// </summary>
-        public int ListIndex
+        public Printer SelectedPrinter
         {
-            get => _listIndex;
-            set
-            {
-                Set(nameof(ListIndex), ref _listIndex, value);
-            }
+            get => _selectedPrinter;
+            set => Set(nameof(SelectedPrinter), ref _selectedPrinter, value);
         }
 
         private string _filter;
@@ -109,13 +106,13 @@ namespace PrintPrince.ViewModels
         public PrinterListViewModel(IDialogService dialogService)
         {
             _dialogService = dialogService;
-            ListIndex = -1;
+            SelectedPrinter = null;
             Filter = "";
             PrinterList = new List<Printer>();
             FilteredPrinters = new List<Printer>();
 
             // Disable button if listindex is unselected
-            ShowDetailsCommand = new RelayCommand(() => ShowPrinterDetails(), () => { return (ListIndex >= 0 && ListIndex < PrinterList.Count) ? true : false; });
+            ShowDetailsCommand = new RelayCommand(() => ShowPrinterDetails(), () => { return SelectedPrinter != null; });
             PropertyList = new List<string> { "Name", "IP", "Driver", "Region", "Description", "Location" } ;
         }
 
@@ -125,7 +122,7 @@ namespace PrintPrince.ViewModels
         public void Initialize()
         {
             Filter = "";
-            ListIndex = -1;
+            SelectedPrinter = null;
             PrinterList = new List<Printer>();
             PrinterList = PrinterRepository.PrinterList;
             FilteredPrinters = new List<Printer>();
@@ -151,7 +148,7 @@ namespace PrintPrince.ViewModels
         {
             if (PrinterList != null)
             {
-                ListIndex = -1;
+                SelectedPrinter = null;
 
                 // Get list of printers where the chosen property being filtered matches the filter
                 // Gets Property by name based on SelectedFilterProperty, gets value of property, converts to lowercase string
@@ -178,8 +175,8 @@ namespace PrintPrince.ViewModels
                 if (PrinterList.Count > 0)
                 {
                     var printerDetails = new PrinterDetailsViewModel(_dialogService,
-                        FilteredPrinters[ListIndex],
-                        PrinterRepository.SysManPrinterList.Where(p => p.Name == FilteredPrinters[ListIndex].Name).FirstOrDefault());
+                        FilteredPrinters.Where(p => p.Name == SelectedPrinter.Name).FirstOrDefault(),
+                        PrinterRepository.SysManPrinterList.Where(p => p.Name == SelectedPrinter.Name).FirstOrDefault());
 
                     bool? result = _dialogService.ShowDialog(this, printerDetails);
 
@@ -190,7 +187,7 @@ namespace PrintPrince.ViewModels
                     FilteredPrinters = new List<Printer>();
                     FilteredPrinters = PrinterList;
                     Filter = "";
-                    ListIndex = -1;
+                    SelectedPrinter = null;
                 }
             }
         }

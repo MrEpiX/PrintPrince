@@ -45,7 +45,7 @@
 
         <ListView Grid.Row="1" ItemsSource="{Binding FilteredPrinters, UpdateSourceTrigger=PropertyChanged}"
                   Margin="4,0,4,4" VerticalAlignment="Top" SelectionMode="Single" Height="460"
-                  util:GridViewSort.AutoSort="True" util:GridViewSort.ShowSortGlyph="False" SelectedIndex="{Binding ListIndex, UpdateSourceTrigger=PropertyChanged}" >
+                  util:GridViewSort.AutoSort="True" util:GridViewSort.ShowSortGlyph="False" SelectedItem="{Binding SelectedPrinter, UpdateSourceTrigger=PropertyChanged}" >
             <ListView.ItemContainerStyle>
                 <Style TargetType="ListViewItem" BasedOn="{StaticResource MaterialDesignGridViewItem}">
                     <Style.Triggers>
