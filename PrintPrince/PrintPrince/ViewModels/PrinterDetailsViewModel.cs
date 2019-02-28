@@ -777,7 +777,7 @@ namespace PrintPrince.ViewModels
                         var result = await SysManManager.DeletePrinterAsync(CurrentSysManPrinter.ID);
                         if (result == "")
                         {
-                            Logger.Log($"Deleted printer {CurrentSysManPrinter.Name} in SysMan!", System.Diagnostics.EventLogEntryType.Information);
+                            Logger.Log($"Successfully deleted printer {CurrentSysManPrinter.Name} in SysMan!", System.Diagnostics.EventLogEntryType.Information);
                             PrinterRepository.SysManPrinterList.Remove(PrinterRepository.SysManPrinterList.Where(p => p.Name == CurrentSysManPrinter.Name).FirstOrDefault());
                         }
                         else

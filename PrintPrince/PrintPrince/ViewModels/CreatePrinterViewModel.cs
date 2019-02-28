@@ -729,7 +729,7 @@ namespace PrintPrince.ViewModels
                     Logger.Log($"Created printer in Cirrato with information:\n{newPrinter.ToString()}", System.Diagnostics.EventLogEntryType.Information);
 
                     // Add configuration to queue of the newly created printer if user selected a config
-                    if (!string.IsNullOrWhiteSpace(SelectedConfiguration))
+                    if (!string.IsNullOrWhiteSpace(SelectedConfiguration == "[None]" ? "" : SelectedConfiguration))
                     {
                         string configID = driver.ConfigurationList.Where(c => c.Name == SelectedConfiguration).Select(c => c.CirratoID).FirstOrDefault();
 

@@ -71,7 +71,7 @@ namespace PrintPrince.Models
             sb.AppendLine($"SysMan ID: {SysManID}");
             sb.AppendLine($"IP Address: {IP}");
             sb.AppendLine($"Print Driver: {Driver.Name}");
-            sb.AppendLine($"Configuration: {Configuration}");
+            sb.AppendLine($"Configuration: {(Configuration == "" ? "[None]" : Configuration)}");
             sb.AppendLine($"Description: {Description}");
             sb.AppendLine($"Location: {Location}");
 

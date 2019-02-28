@@ -3,7 +3,7 @@ Print Prince aims to centralize administration of printers in environments using
 
 By using the APIs of Cirrato and SysMan, printer management can be done from a single tool. Print Prince optimizes printer management workflow with a GUI simple and quick enough for even the first line support to use.
 
-* **Flexible** - Using Print Prince enables solutions such as login scripts to install printers through the Cirrato Client's API while still having the benefits of installing printers through SysMan.
+* **Flexible** - Using Print Prince enables solutions such as login scripts to install printers through the Cirrato Client's API while still having the benefits of adding printers to computers in SysMan.
 * **Modern** - Print Prince replaces the dated Microsoft Management Console, implementing Material Design with a modern look and responsive design focused on user experience.
 * **Minimize Mistakes** - When working with two systems and needing to create printers in both it's easy to forget one, Print Prince prevents mistakes by creating the printer in both by default. Print Prince also logs usage of the tool to the Application event log of the machine under the source .NET Runtime to make changes trackable.
 * **Maximize Value** - No more of several licenses for the same printer, Print Prince validates creation of printers against both name and IP address in Cirrato to make sure you don't pay double for what you have.
@@ -34,7 +34,7 @@ When using Print Prince the user needs to log into the Cirrato PMC. If the user 
 <img src="Login.gif">
 
 ### **Creating a Printer**
-When creating a printer, Print Prince suggests a naming convention by finding printers in Cirrato that contain three underscores, matching SITE_BUILDING_FLOOR_xx where xx is a series of numbers starting at 01. Print Prince suggests the first available number in the series, but the name can be changed freely afterwards if desired. If this is not a naming convention that you use, feel free to fork Print Prince and remove the naming suggestion parts. Print Prince requires each field to be filled, and verifies that the name and IP address is not already used by a printer in Cirrato.
+When creating a printer, Print Prince suggests a naming convention by finding printers in Cirrato that contain three underscores, matching SITE_BUILDING_FLOOR_xx where xx is a series of numbers starting at 01. Print Prince suggests the first available number in the series, but the name can be changed freely afterwards if desired. If this is not a naming convention that you use, feel free to fork Print Prince and remove the naming suggestion parts. Print Prince requires each field to be filled, and verifies that the name and IP address is not already used by a printer in Cirrato. Print Prince also gathers all configurations and deployments of drivers in your environment and lets you specify a configuration that will be applied to the queue connected to the printer being created.
 
 <img src="Create.gif">
 
